@@ -16,7 +16,7 @@
     "axios": "^1.20.0",
     "barcode-detector": "^3.2.2",
     "canvas-confetti": "^1.9.4",
-    "i18next": "^26.4.0",
+    "i18next": "^27.1.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
