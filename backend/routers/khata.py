@@ -97,6 +97,7 @@ def delete_customer(
     vendor: models.Vendor = Depends(security.get_current_vendor),
     db: Session = Depends(get_db),
 ):
+    customer = _owned_customer(customer_id, vendor, db)
     balance = customer.total_credit_balance or 0.0
     if abs(balance) > 0.005:
         if balance > 0:

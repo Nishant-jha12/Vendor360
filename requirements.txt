@@ -1,0 +1,8 @@
+# Root requirements for Vercel Python serverless deployment (api/index.py)
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.30,<1.0
+sqlalchemy>=2.0.30,<2.1
+pydantic>=2.9,<3.0
+qrcode>=7.4,<9
+pillow>=10.4
+psycopg[binary]>=3.2,<4

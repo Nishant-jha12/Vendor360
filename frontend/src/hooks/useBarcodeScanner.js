@@ -80,7 +80,7 @@ export function useBarcodeScanner({ onDetect, scanIntervalMs = 250 } = {}) {
    * tick, and overlapping decodes would queue up until the tab stutters.
    */
   const tick = useCallback(
-    async (intervalMs) => {
+    async function runTick(intervalMs) {
       timerRef.current = null;
       if (stoppedRef.current) return;
 
@@ -106,7 +106,7 @@ export function useBarcodeScanner({ onDetect, scanIntervalMs = 250 } = {}) {
       }
 
       if (!stoppedRef.current) {
-        timerRef.current = setTimeout(() => tick(intervalMs), intervalMs);
+        timerRef.current = setTimeout(() => runTick(intervalMs), intervalMs);
       }
     },
     [],

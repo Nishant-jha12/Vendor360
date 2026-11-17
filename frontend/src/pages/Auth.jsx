@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Loader2, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, BookOpen, Eye, EyeOff, Loader2, Moon, QrCode, ShieldCheck, ShoppingCart, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '../i18n';
 import { api, errorMessage } from '../lib/api';
@@ -171,60 +171,117 @@ export default function Auth() {
   const [title, subtitle] = headings[mode];
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-neutral-950 flex flex-col items-center justify-center p-0 md:py-6 selection:bg-brand-primary selection:text-white font-roboto antialiased">
-      <div className="w-full max-w-md h-screen md:h-auto md:min-h-[640px] md:rounded-[36px] bg-brand-surface border-0 md:border md:border-brand-border/80 shadow-2xl overflow-hidden flex flex-col justify-between">
-        <div>
-          {/* Mobile App Header */}
-          <div className="bg-brand-primary text-brand-on-primary p-5 text-center relative shrink-0">
-            {(mode === 'otp' || mode === 'forgot' || mode === 'reset') && (
-              <button
-                onClick={() => setMode('login')}
-                aria-label={t('auth.go_back', 'Go back')}
-                className="absolute left-4 top-5 opacity-80 hover:opacity-100 focus-visible:ring-2 focus-visible:ring-white rounded-full p-1 outline-none"
-              >
-                <ArrowLeft size={22} />
-              </button>
-            )}
-
-            {/* Theme Toggle */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-              className="absolute right-4 top-5 w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center transition-all outline-none"
-            >
-              {isDark ? <Sun size={17} className="text-amber-300" /> : <Moon size={17} />}
-            </button>
-
-            {/* Language Switcher Pill */}
-            <div className="flex justify-center gap-1.5 mb-2.5">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  onClick={() => {
-                    i18n.changeLanguage(l.code);
-                    localStorage.setItem('vendor_lang', l.code);
-                  }}
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all ${
-                    i18n.language === l.code
-                      ? 'bg-white text-brand-primary shadow-sm'
-                      : 'bg-white/20 text-white/90 hover:bg-white/30'
-                  }`}
-                >
-                  {l.code === 'en' ? 'English' : l.code === 'hi' ? 'हिंदी' : l.code === 'mr' ? 'मराठी' : 'বাংলা'}
-                </button>
-              ))}
+    <div className="min-h-screen bg-slate-100 dark:bg-neutral-950 flex flex-col items-center justify-center p-0 md:p-6 lg:p-10 selection:bg-brand-primary selection:text-white font-roboto antialiased">
+      <div className="w-full max-w-md md:max-w-4xl lg:max-w-5xl h-screen md:h-auto md:min-h-[600px] md:rounded-3xl bg-brand-surface border-0 md:border md:border-brand-border/80 shadow-2xl overflow-hidden grid md:grid-cols-12">
+        {/* PC Desktop Left Brand Showcase Panel */}
+        <div className="hidden md:flex md:col-span-5 lg:col-span-6 bg-brand-primary text-brand-on-primary p-8 lg:p-10 flex-col justify-between relative overflow-hidden">
+          <div>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center border border-white/30 shadow-sm font-inter font-bold text-xl">
+                V
+              </div>
+              <div>
+                <h2 className="text-xl font-bold font-inter leading-tight">Vendor360</h2>
+                <p className="text-xs opacity-80">Smart Kirana POS & Digital Khata</p>
+              </div>
             </div>
 
-            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-2 border border-white/30 shadow-sm font-inter font-bold text-xl">
-              V
+            <h3 className="text-2xl lg:text-3xl font-extrabold font-inter leading-snug mb-3">
+              Complete store billing, stock & udhaar on PC and Mobile.
+            </h3>
+            <p className="text-sm opacity-85 leading-relaxed mb-8">
+              Automatically adapts to your desktop counter workstation or mobile phone with offline resilience and vernacular voice entry.
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 bg-white/10 rounded-2xl p-3.5 border border-white/15">
+                <ShoppingCart size={20} className="shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold">Fast Counter Billing & FIFO Batches</p>
+                  <p className="text-[11px] opacity-80">Barcode scan, expiry-first stock deduction, and GST purchase register.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 bg-white/10 rounded-2xl p-3.5 border border-white/15">
+                <QrCode size={20} className="shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold">UPI Soundbox & Auto-Reconciliation</p>
+                  <p className="text-[11px] opacity-80">Dynamic QR with instant voice announcements in Hindi, Marathi, Bengali & English.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 bg-white/10 rounded-2xl p-3.5 border border-white/15">
+                <BookOpen size={20} className="shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold">Digital Khata & Offline-First Sync</p>
+                  <p className="text-[11px] opacity-80">Track customer credit, send 1-tap WhatsApp reminders, and bill even without internet.</p>
+                </div>
+              </div>
             </div>
-            <h1 className="text-xl font-bold font-inter">{title}</h1>
-            <p className="opacity-85 text-xs mt-0.5">{subtitle}</p>
           </div>
 
-          <div className="p-6">
+          <div className="pt-6 border-t border-white/20 flex items-center justify-between text-xs opacity-80">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck size={15} /> PBKDF2-SHA256 & 2FA Protected
+            </span>
+            <span>v2.0</span>
+          </div>
+        </div>
+
+        {/* Right Form Column (Full screen on Mobile, Right half on PC) */}
+        <div className="md:col-span-7 lg:col-span-6 flex flex-col justify-between h-full">
+          <div>
+            {/* Header (Compact top bar on PC, Full hero header on Mobile) */}
+            <div className="bg-brand-primary md:bg-brand-surface text-brand-on-primary md:text-brand-ink p-5 md:px-8 md:pt-7 md:pb-3 text-center md:text-left relative shrink-0 md:border-b md:border-brand-border/40">
+              {(mode === 'otp' || mode === 'forgot' || mode === 'reset') && (
+                <button
+                  onClick={() => setMode('login')}
+                  aria-label={t('auth.go_back', 'Go back')}
+                  className="absolute left-4 top-5 md:static md:mb-3 opacity-80 hover:opacity-100 focus-visible:ring-2 focus-visible:ring-brand-primary rounded-full p-1 outline-none inline-flex items-center gap-1 text-xs font-bold"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+              )}
+
+              <div className="flex items-center justify-between gap-2 mb-3">
+                {/* Language Switcher Pill */}
+                <div className="flex justify-center md:justify-start gap-1.5 flex-wrap mx-auto md:mx-0">
+                  {LANGUAGES.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => {
+                        i18n.changeLanguage(l.code);
+                        localStorage.setItem('vendor_lang', l.code);
+                      }}
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all ${
+                        i18n.language === l.code
+                          ? 'bg-white text-brand-primary md:bg-brand-primary md:text-brand-on-primary shadow-sm'
+                          : 'bg-white/20 text-white/90 hover:bg-white/30 md:bg-brand-bg md:text-brand-muted md:hover:text-brand-ink'
+                      }`}
+                    >
+                      {l.code === 'en' ? 'English' : l.code === 'hi' ? 'हिंदी' : l.code === 'mr' ? 'मराठी' : 'বাংলা'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Theme Toggle */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+                  className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 md:bg-brand-bg md:hover:bg-brand-border/40 active:scale-95 text-white md:text-brand-ink flex items-center justify-center transition-all outline-none shrink-0"
+                >
+                  {isDark ? <Sun size={17} className="text-amber-300 md:text-amber-500" /> : <Moon size={17} />}
+                </button>
+              </div>
+
+              <div className="md:hidden w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-2 border border-white/30 shadow-sm font-inter font-bold text-xl">
+                V
+              </div>
+              <h1 className="text-xl md:text-2xl font-bold font-inter">{title}</h1>
+              <p className="opacity-85 md:text-brand-muted text-xs mt-0.5">{subtitle}</p>
+            </div>
+
+            <div className="p-6 md:px-8 md:py-6">
             {mode === 'login' && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <Field label={t('auth.username_or_email', 'Username or email')}>
@@ -425,6 +482,7 @@ export default function Auth() {
               Terms & Privacy Policy
             </Link>
           </p>
+        </div>
         </div>
       </div>
     </div>

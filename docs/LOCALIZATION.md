@@ -11,5 +11,5 @@ Vendor360 is built with native vernacular support for Indian retail storekeepers
 
 ## 🔑 Key Structure
 
-All locale files live under `frontend/src/locales/{code}.json` and are verified using `npm run i18n:check`.
-Strict parity is maintained across all 277 UI keys.
+All locale files live under `frontend/src/locales/{code}.json` and are verified using `npm run i18n:check` and `node scripts/verify-locales.mjs`.
+Strict parity is maintained across all **348 UI keys** (23 top-level namespaces).

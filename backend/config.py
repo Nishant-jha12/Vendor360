@@ -171,6 +171,10 @@ class Settings:
         ).split(",")
         if o.strip()
     ]
+    if os.environ.get("VERCEL_URL"):
+        _vercel_origin = f"https://{os.environ['VERCEL_URL'].strip()}"
+        if _vercel_origin not in CORS_ORIGINS:
+            CORS_ORIGINS.append(_vercel_origin)
 
     # --- Docs ---------------------------------------------------------------
     # The interactive docs publish the whole API surface. Fine locally, needless

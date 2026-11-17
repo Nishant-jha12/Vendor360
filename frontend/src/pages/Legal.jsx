@@ -5,10 +5,10 @@ export default function Legal() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-neutral-950 flex flex-col items-center justify-center p-0 md:py-6 font-roboto antialiased">
-      <div className="w-full max-w-md h-screen md:h-auto md:min-h-[700px] md:max-h-[90vh] md:rounded-[36px] bg-brand-surface border-0 md:border md:border-brand-border/80 shadow-2xl overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-slate-100 dark:bg-neutral-950 flex flex-col items-center justify-center p-0 md:p-8 font-roboto antialiased">
+      <div className="w-full max-w-md md:max-w-4xl h-screen md:h-auto md:rounded-3xl bg-brand-surface border-0 md:border md:border-brand-border/80 shadow-2xl overflow-hidden flex flex-col">
         {/* App Bar Header */}
-        <header className="bg-brand-surface text-brand-ink px-4 py-3 sticky top-0 z-30 flex items-center gap-3 border-b border-brand-border/40 shrink-0 shadow-sm">
+        <header className="bg-brand-surface text-brand-ink px-4 md:px-6 py-3 md:py-4 sticky top-0 z-30 flex items-center gap-3 border-b border-brand-border/40 shrink-0 shadow-sm">
           <button
             onClick={() => navigate(-1)}
             aria-label="Go back"
@@ -18,12 +18,12 @@ export default function Legal() {
           </button>
           <div className="flex items-center gap-2">
             <ShieldCheck size={18} className="text-brand-primary" />
-            <h1 className="font-bold text-sm font-inter text-brand-ink">Terms & Privacy Policy</h1>
+            <h1 className="font-bold text-sm md:text-base font-inter text-brand-ink">Terms & Privacy Policy</h1>
           </div>
         </header>
 
         {/* Scrollable Policy Content */}
-        <main className="flex-1 overflow-y-auto p-4 space-y-4 text-brand-ink">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 grid md:grid-cols-2 gap-4 text-brand-ink">
           <section className="bg-brand-bg p-4 rounded-2xl border border-brand-border/60">
             <h2 className="text-sm font-bold font-inter mb-1.5 text-brand-primary">1. Unique Vendor Identification</h2>
             <p className="text-xs text-brand-muted leading-relaxed">

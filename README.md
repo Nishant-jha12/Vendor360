@@ -57,29 +57,36 @@ API docs are at http://127.0.0.1:8000/docs
 
 ```
 frontend/src
-  lib/api.js          axios instance, token injection, 401 handling
-  lib/format.js       Indian currency and date formatting
-  context/            AuthContext — the single source of session state
-  hooks/useApi.js     fetch + loading/error/retry
-  hooks/useChartTheme small helper so charts follow light/dark
+  lib/api.js            axios instance, token injection, 401 handling
+  lib/format.js         Indian currency and date formatting
+  lib/offlineDb.js      IndexedDB v2 tenant-scoped catalogue cache & sales outbox
+  lib/soundbox.js       Web Audio dual-tone chime & multilingual Web Speech TTS
+  lib/intakePdf.js      the goods-received note, as a PDF
+  context/              AuthContext, ThemeContext, SyncContext, SoundboxContext
+  hooks/useApi.js       fetch + loading/error/retry
+  hooks/useChartTheme   small helper so charts follow light/dark
   hooks/useBarcodeScanner  camera scanning; lib/barcodeDetector picks the engine
-  components/         Toast, States (skeleton/empty/error/demo), ExpiryAlert,
-                      CheckoutModal, ModalShell, IntakeItemSheet, IntakeSummary
-  lib/intakePdf.js    the goods-received note, as a PDF
-  pages/              one file per screen
+  components/           Toast, States, ExpiryAlert, CheckoutModal, ModalShell,
+                        IntakeItemSheet, IntakeSummary, SyncCenterModal,
+                        SecurityLog, ErrorBoundary
+  locales/              en.json, hi.json, mr.json, bn.json (348 keys each)
+  pages/                one file per screen
 
 backend
-  config.py           settings from .env, and the production safety check
-  notifications.py    delivery of one-time codes and reset links
-  ratelimit.py        in-process rate limiting for the auth endpoints
-  stock.py            batch-level stock: the only place quantity moves
-  crypto_utils.py     PBKDF2 password hashing + HS256 JWT, standard library only
-  security.py         thin wrappers + get_current_vendor dependency
-  models.py           SQLAlchemy models
-  schemas.py          Pydantic request/response models
-  routers/            auth, vendor, inventory, sales, intake, khata, analytics,
-                      checkout, demo
-  tests/              pytest suites
+  config.py             settings from .env, and the production safety check
+  notifications.py      delivery of one-time codes and reset links
+  ratelimit.py          in-process rate limiting for auth and reset endpoints
+  stock.py              batch-level stock: the only place quantity moves
+  crypto_utils.py       PBKDF2 password hashing (600k iterations) + HS256 JWT
+  security.py           thin wrappers + get_current_vendor dependency
+  audit.py              persistent security event log & IP/proxy extraction
+  barcodes.py           GS1 check digit, country prefix & cached barcode lookup
+  tz_utils.py           shop timezone (Asia/Kolkata) business-day bounds
+  models.py             SQLAlchemy models
+  schemas.py            Pydantic request/response models
+  routers/              auth, vendor, inventory, sales, intake, khata, analytics,
+                        checkout, demo
+  tests/                145 pytest unit & integration tests
 ```
 
 ### Stock intake
@@ -145,7 +152,7 @@ That chaining is the fix for a real hole: `verify-otp` used to accept a
 at all. Anyone holding an account id could ask for a fresh code and then guess
 six digits with no limit, so the password was decorative.
 
-Passwords use PBKDF2-HMAC-SHA256 (240k iterations, per-user salt). Accounts
+Passwords use PBKDF2-HMAC-SHA256 (600k iterations, per-user salt). Accounts
 created before this change still sign in, and their hash is upgraded silently on
 the next successful login.
 
@@ -210,7 +217,12 @@ Known limits, stated plainly:
 ```bash
 cd backend
 python -m pytest tests/test_crypto.py   # standard library only, no install needed
-python -m pytest                        # full suite (needs requirements.txt)
+python -m pytest                        # full 145-test suite (needs requirements.txt)
+
+cd ../frontend
+npm run i18n:check                      # verifies 348-key parity across en, hi, mr, bn
+npm test                                # frontend unit tests
+npm run lint                            # oxlint static analysis
 ```
 
 `test_crypto.py` covers password hashing, salting, legacy-hash upgrades, and JWT
@@ -239,6 +251,9 @@ Backend `.env` (see `.env.example`):
 | `RATE_LIMIT_ENABLED` | `true` | Turning this off is refused in production. |
 | `OTP_MAX_ATTEMPTS` | `5` | Wrong guesses before the code is destroyed. |
 | `MAX_REQUEST_BYTES` | `1048576` | Largest accepted request body. |
+| `WEBHOOK_SIGNING_SECRET` | empty | HMAC-SHA256 secret for `/api/checkout/webhook` (required in production). |
+| `SHOP_TZ` | `Asia/Kolkata` | Shop timezone for day-close and analytics boundaries. |
+| `TRUSTED_PROXY_IPS` | empty | Comma-separated reverse proxy IPs trusted for `X-Forwarded-For`. |
 
 `run.ps1` and `backend/.env.example` set `DEBUG_OTP=true` and `DEMO_MODE=true`
 so the local flow works without an SMS provider. Both are development-only, and
@@ -252,12 +267,16 @@ Frontend `.env.local`: `VITE_API_URL=http://127.0.0.1:8000/api`
 
 The app labels this in the UI, and it is worth being explicit here too.
 
-**Real** — billing and stock movement, barcode stock intake with batch-level
-(first-expiry-first) stock, its printable goods-received note, the delivery
-history and monthly purchase register, khata balances and history, WhatsApp payment reminders,
-expiry tracking and clearance pricing, the sales trend, the health score, the
-day-close summary, the reorder list, UPI QR generation, and the day-of-week
-forecast (once there are 14 days of history).
+**Real** — billing and stock movement, offline-first billing outbox with background
+sync (`IndexedDB v2` + `POST /api/sales/sync-batch` with client-minted `offline_id`
+idempotency and automatic 500-item batch chunking), barcode stock intake with
+batch-level (first-expiry-first) stock, its printable goods-received note, the
+delivery history and monthly purchase register, khata balances and history,
+WhatsApp payment reminders, expiry tracking and clearance pricing, the sales
+trend, the health score, the day-close summary, the reorder list, dynamic UPI QR
+generation with HMAC-authenticated webhook auto-reconciliation, SSE real-time
+push and software UPI Soundbox voice readout, and the day-of-week forecast (once
+there are 14 days of history).
 
 **Not real yet** — the heatmap's demand zones, wholesalers, competitors and
 catchment figures are illustrative sample data (the map itself is real);
@@ -282,8 +301,12 @@ writing anything.
 
 - **SQLite and no migrations tool.** `migrate.py` adds missing columns in place;
   move to Alembic before the schema changes much further.
-- **UPI confirmation is manual.** Vendor360 cannot see your bank account, so
-  "payment received" is something you confirm, not something it detects.
+- **UPI Soundbox & Webhook Reconciliation.** Dynamic UPI intents auto-reconcile
+  via HMAC-SHA256 webhooks (`POST /api/checkout/webhook`) and push real-time
+  events over SSE (`GET /api/checkout/stream`) to trigger the built-in voice
+  Soundbox; in development (`DEMO_MODE=true`), a 1-tap simulator lets you test
+  instant payment completion without a live bank gateway, and manual confirmation
+  is always available as a fallback.
 
 ---
 
@@ -292,7 +315,8 @@ writing anything.
 Vendor360 v2.0 is designed as a native-feel mobile application tailored for Kirana retail:
 
 - **🌓 Light & Dark Theme**: Segmented toggle on the Home screen header, top bar, login card, and account settings with smooth CSS transitions.
-- **🇮🇳 100% Vernacular Localization**: Full parity across English, Hindi (हिंदी), Marathi (मराठी), and Bengali (বাংলা) for all 277 UI keys.
-- **📲 Mobile-First PWA Layout**: Fluid mobile viewport, 4-tab bottom navigation, and Kirana App Drawer.
-- **🎙 Hands-Free Voice Inventory**: Speak stock entries in your local language with instant live parsing.
+- **🇮🇳 100% Vernacular Localization**: Full parity across English, Hindi (हिंदी), Marathi (मराठी), and Bengali (বাংলা) for all 348 UI keys.
+- **📲 Mobile-First PWA & Offline Resilience**: Fluid mobile viewport, 4-tab bottom navigation, Kirana App Drawer, Service Worker shell caching (`sw.js`), and tenant-scoped IndexedDB offline queue.
+- **🔊 Software UPI Soundbox**: Web Audio dual-tone chime and Web Speech API multilingual voice announcements (`hi-IN`, `mr-IN`, `bn-IN`, `en-IN`) triggered automatically on payment confirmation.
+- **🎙 Hands-Free Voice Inventory**: Speak stock entries in your local language (including Devanagari/Bengali numerals and colloquial trade terms) with instant live parsing.
 - **🧾 WhatsApp Receipts & Khata Reminders**: Generate customer bills and udhaar payment reminders via WhatsApp in one tap.

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import {
-  Cloud, CloudOff, RefreshCw, X, CheckCircle2, Clock, AlertCircle, ShoppingBag, ArrowRight
+  Cloud, CloudOff, RefreshCw, X, CheckCircle2, Clock, AlertCircle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSync } from '../context/SyncContext';

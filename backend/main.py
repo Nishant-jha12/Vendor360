@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import logging
 import math
 import uuid
@@ -18,10 +19,18 @@ log = logging.getLogger("vendor360")
 
 models.Base.metadata.create_all(bind=engine)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    startup_checks()
+    yield
+
+
 app = FastAPI(
     title="Vendor360 API",
     version="2.0.0",
     description="Inventory, billing and digital khata for neighbourhood retail.",
+    lifespan=lifespan,
     # The interactive docs enumerate every endpoint and schema. Useful locally,
     # free reconnaissance in production.
     docs_url="/docs" if settings.ENABLE_DOCS else None,
@@ -144,7 +153,6 @@ app.include_router(checkout.router, prefix="/api/checkout", tags=["UPI Checkout"
 app.include_router(demo.router, prefix="/api/demo", tags=["Demo Data"])
 
 
-@app.on_event("startup")
 def startup_checks():
     problems = validate_for_production()
 

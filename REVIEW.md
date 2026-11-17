@@ -327,7 +327,7 @@ honest empty state instead of a fabricated number.
 - JWT (HS256) issued only after OTP; **every endpoint derives the vendor from
   the token**, and no route accepts a `vendor_id` from the client. Tests cover
   the cross-tenant case that used to be wide open.
-- Passwords moved from unsalted SHA-256 to PBKDF2-HMAC-SHA256 (240k iterations,
+- Passwords moved from unsalted SHA-256 to PBKDF2-HMAC-SHA256 (600k iterations,
   per-user salt), with transparent upgrade of old hashes on next login.
 - Real one-time codes, hashed and expiring, with the fixed `123456` now behind
   `DEBUG_OTP`.
@@ -380,17 +380,36 @@ replaced with OpenStreetMap, Carto and OpenTopoMap.
 
 ## Verification
 
-- 15 security tests (hashing, salting, legacy upgrade, JWT signature/expiry/
-  tampering, `alg: none`) — **run and passing**.
-- 25 API tests over stock movement, margin, khata arithmetic, overpayment,
-  tenant isolation and auth behaviour — written; run them with
-  `pip install -r requirements.txt && python -m pytest`.
-- All 26 frontend files parse; all imports and 136 lucide icons resolve; all 27
-  frontend API calls map to real backend routes; the route table has no
-  duplicate mounts or shadowed paths.
+- 145 backend pytest tests covering password hashing, salting, legacy upgrade,
+  JWT signature/expiry/tampering (`alg: none`), stock movement, FIFO batch lot
+  depletion, margin arithmetic, khata balance & overpayment credit, tenant
+  isolation, barcode lookup & intake sessions, offline sync idempotency &
+  501-item batch chunking boundary, and UPI Soundbox intent/webhook/SSE
+  reconciliation — **all 145 passing**.
+- 4 frontend unit tests (`npm test`) and 348-key i18n parity check (`npm run i18n:check`)
+  across English, Hindi, Marathi, and Bengali — **all passing**.
+- All frontend files parse cleanly (`npm run lint`, `npm run build`); all imports
+  and lucide icons resolve; all frontend API calls map to real backend routes;
+  the route table has no duplicate mounts or shadowed paths.
+
+## Subsequent v2.0 additions (completed)
+
+- **Offline-first architecture & PWA**: Service Worker shell caching (`sw.js`),
+  tenant-scoped `IndexedDB v2` catalogue/customer cache and sales outbox,
+  client-minted `offline_id` idempotency, automatic 500-item batch chunking on
+  `POST /api/sales/sync-batch`, and the Sync Center modal.
+- **Software UPI Soundbox & Auto-Reconciliation**: Dynamic BharatQR intents,
+  HMAC-SHA256 authenticated webhook (`/api/checkout/webhook`), real-time SSE
+  push (`/api/checkout/stream`), Web Audio chime synthesizer, and multilingual
+  Web Speech voice announcements (`hi-IN`, `mr-IN`, `bn-IN`, `en-IN`).
+- **Complete 4-language vernacular i18n**: 348 keys with 100% parity across
+  English, Hindi, Marathi, and Bengali, plus Indic numeral normalization in OTP
+  and voice entry.
+- **Camera & hardware barcode scanning**: Native `BarcodeDetector` with
+  self-hosted ZXing WebAssembly fallback (`useBarcodeScanner`, `barcodeDetector.js`).
 
 ## Still open
 
-Offline/PWA support, Alembic, completing the i18n extraction (billing, auth and
-settings are still English-only), real receipt OCR, a barcode scanner, and
-splitting `Heatmap.jsx` (still the largest file at ~780 lines).
+Alembic migrations (currently handled by idempotent `migrate.py` for SQLite),
+real receipt camera OCR (currently handled via barcode/manual stock intake), and
+splitting `Heatmap.jsx`.

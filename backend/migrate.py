@@ -72,6 +72,12 @@ def add_missing_columns(path: Path) -> None:
         cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}")
         print(f"  + {table}.{column}")
 
+    if "sales" in existing_tables:
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_sales_vendor_offline_id "
+            "ON sales (vendor_id, offline_id)"
+        )
+
     conn.commit()
     conn.close()
 

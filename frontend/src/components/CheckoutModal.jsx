@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import {
   Check, Copy, Loader2, QrCode, Smartphone, X, Volume2,
-  Sparkles, Radio, CheckCircle2, ArrowRight, Zap, RefreshCw
+  CheckCircle2, ArrowRight, Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
