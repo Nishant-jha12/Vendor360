@@ -172,7 +172,8 @@
     "confirm_password": "पासवर्ड की पुष्टि करें",
     "already_registered": "पहले से पंजीकृत हैं?",
     "at_least_10_chars": "कम से कम 10 अक्षर",
-    "phone_too_short": "कृपया एक मान्य फोन नंबर दर्ज करें (कम से कम 10 अंक)"
+    "phone_too_short": "कृपया एक मान्य फोन नंबर दर्ज करें (कम से कम 10 अंक)",
+    "demo_fill": "डेमो स्टोर भरें (testowner)"
   },
   "account": {
     "title": "मेरा खाता",

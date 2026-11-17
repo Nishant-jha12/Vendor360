@@ -5,7 +5,7 @@
  * ensuring the app opens and functions without network connectivity.
  */
 
-const CACHE_NAME = 'vendor360-shell-v2';
+const CACHE_NAME = 'vendor360-shell-v3';
 
 const PRECACHE_URLS = [
   '/',
@@ -44,22 +44,6 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests and non-http(s) protocols
   if (request.method !== 'GET' || !url.protocol.startsWith('http')) {
-    return;
-  }
-
-  // API Requests: Network-first
-  if (url.pathname.startsWith('/api')) {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return new Response(
-          JSON.stringify({ error: 'offline', message: 'You are currently offline.' }),
-          {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-      })
-    );
     return;
   }
 

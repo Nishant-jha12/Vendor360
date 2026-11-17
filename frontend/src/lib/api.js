@@ -1,16 +1,8 @@
 import axios from 'axios';
+import { handleDemoRequest } from './demoBackend';
 
-// One place that knows where the API lives. This used to be hardcoded as
-// http://127.0.0.1:8000 in 21 separate files, which meant the app could never
-// run anywhere but the machine that built it.
-const isLocalVite =
-  typeof window !== 'undefined' &&
-  window.location.protocol === 'http:' &&
-  ['5173', '5174', '5175', '4173'].includes(window.location.port);
-
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
-  (isLocalVite ? `http://${window.location.hostname}:8000/api` : '/api');
+export const IS_DEMO_STANDALONE = true;
+export const API_BASE_URL = '/demo-api';
 
 const AUTH_KEY = 'vendor_auth';
 
@@ -38,6 +30,28 @@ export function clearStoredAuth() {
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
+  adapter: async (config) => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      const netErr = new Error('Network Error');
+      netErr.code = 'ERR_NETWORK';
+      netErr.config = config;
+      netErr.isAxiosError = true;
+      throw netErr;
+    }
+    try {
+      const data = await handleDemoRequest(config);
+      return {
+        data,
+        status: data === null ? 204 : 200,
+        statusText: data === null ? 'No Content' : 'OK',
+        headers: {},
+        config,
+      };
+    } catch (err) {
+      err.config = config;
+      throw err;
+    }
+  },
 });
 
 api.interceptors.request.use((config) => {

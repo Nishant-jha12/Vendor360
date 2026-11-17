@@ -326,6 +326,20 @@ export default function Auth() {
 
                 <SubmitButton loading={loading}>{t('auth.sign_in', 'Sign in')}</SubmitButton>
 
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      username: 'testowner',
+                      password: 'Test@123456',
+                    }))
+                  }
+                  className="w-full py-2.5 px-3 rounded-2xl border border-brand-primary/30 bg-brand-primary/5 hover:bg-brand-primary/10 text-brand-primary text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>{t('auth.demo_fill', 'Use Demo Store (testowner)')}</span>
+                </button>
+
                 <p className="text-center text-sm text-brand-muted">
                   {t('auth.new_here', 'New here?')}{' '}
                   <button type="button" onClick={() => setMode('signup')} className="font-bold text-brand-primary hover:underline">

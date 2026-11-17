@@ -172,7 +172,8 @@
     "confirm_password": "पासवर्ड पुष्टी करा",
     "already_registered": "आधीच नोंदणीकृत आहात?",
     "at_least_10_chars": "किमान 10 वर्ण",
-    "phone_too_short": "कृपया वैध फोन नंबर टाका (किमान 10 अंक)"
+    "phone_too_short": "कृपया वैध फोन नंबर टाका (किमान 10 अंक)",
+    "demo_fill": "डेमो स्टोअर वापरा (testowner)"
   },
   "account": {
     "title": "माझे खाते",

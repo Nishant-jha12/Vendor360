@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
-import { api, errorMessage, API_BASE_URL, readStoredAuth } from '../lib/api';
+import { api, errorMessage, API_BASE_URL, IS_DEMO_STANDALONE, readStoredAuth } from '../lib/api';
 import { money } from '../lib/format';
 import { useAuth } from '../context/AuthContext';
 import { useSoundbox } from '../context/SoundboxContext';
@@ -147,41 +147,43 @@ export default function CheckoutModal({
 
     const currentTxnRef = intent.txn_ref;
 
-    // Connect Server-Sent Events (SSE)
-    try {
-      const auth = readStoredAuth();
-      const token = auth?.token || '';
-      const sseUrl = `${API_BASE_URL}/checkout/stream?token=${encodeURIComponent(token)}`;
+    // Connect Server-Sent Events (SSE) only when a remote backend URL is active
+    if (!IS_DEMO_STANDALONE) {
+      try {
+        const auth = readStoredAuth();
+        const token = auth?.token || '';
+        const sseUrl = `${API_BASE_URL}/checkout/stream?token=${encodeURIComponent(token)}`;
 
-      const es = new EventSource(sseUrl);
-      sseRef.current = es;
+        const es = new EventSource(sseUrl);
+        sseRef.current = es;
 
-      const handleSseMessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (
-            (data.event === 'payment_completed' || event.type === 'payment_completed') &&
-            data.txn_ref === currentTxnRef &&
-            data.status === 'completed'
-          ) {
-            handlePaymentCompleted(data);
+        const handleSseMessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (
+              (data.event === 'payment_completed' || event.type === 'payment_completed') &&
+              data.txn_ref === currentTxnRef &&
+              data.status === 'completed'
+            ) {
+              handlePaymentCompleted(data);
+            }
+          } catch {
+            // ignore non-json keepalives
           }
-        } catch {
-          // ignore non-json keepalives
-        }
-      };
+        };
 
-      es.addEventListener('payment_completed', handleSseMessage);
-      es.onmessage = handleSseMessage;
+        es.addEventListener('payment_completed', handleSseMessage);
+        es.onmessage = handleSseMessage;
 
-      es.onerror = () => {
-        // SSE closed or errored, fallback polling will take over
-        if (es.readyState === EventSource.CLOSED) {
-          es.close();
-        }
-      };
-    } catch (e) {
-      console.warn('[CheckoutModal] EventSource setup failed, relying on polling:', e);
+        es.onerror = () => {
+          // SSE closed or errored, fallback polling will take over
+          if (es.readyState === EventSource.CLOSED) {
+            es.close();
+          }
+        };
+      } catch (e) {
+        console.warn('[CheckoutModal] EventSource setup failed, relying on polling:', e);
+      }
     }
 
     // Fallback polling every 2.5 seconds
@@ -518,8 +520,8 @@ export default function CheckoutModal({
 
             {/* Action Buttons & Simulation */}
             <div className="space-y-2">
-              {/* ⚡ 1-Tap Demo Simulation Button (Dev Only) */}
-              {import.meta.env.DEV && (
+              {/* 1-Tap Demo Simulation Button (Dev & Standalone Demo) */}
+              {(import.meta.env.DEV || IS_DEMO_STANDALONE) && (
                 <button
                   type="button"
                   onClick={handleSimulatePayment}

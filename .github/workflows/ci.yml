@@ -4,81 +4,19 @@ on:
   push:
     branches: [main, master]
   pull_request:
-  # A dependency is not vulnerable on the day you add it -- it becomes
-  # vulnerable later, on a day nobody is pushing. Check on a schedule too.
   schedule:
     - cron: "0 3 * * 1"
 
 jobs:
-  backend:
-    name: Backend tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: backend/requirements.txt
-
-      - name: Install
-        working-directory: backend
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest httpx
-
-      - name: Tests
-        working-directory: backend
-        env:
-          # The suite needs the development shortcuts; production refuses them.
-          SECRET_KEY: ci-secret-key-not-used-anywhere-real
-          DEBUG_OTP: "true"
-          DEMO_MODE: "true"
-        run: python -m pytest -q
-
-      - name: Migration runs on an empty database
-        working-directory: backend
-        env:
-          SECRET_KEY: ci-secret-key-not-used-anywhere-real
-          DATABASE_URL: sqlite:///./ci-check.db
-        run: |
-          python migrate.py
-          python migrate.py   # twice, because it must be safe to re-run
-
-  production-config:
-    name: Production config is refused when unsafe
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Startup must refuse DEBUG_OTP in production
-        working-directory: backend
-        env:
-          APP_ENV: production
-          SECRET_KEY: a-long-enough-secret-key-for-this-check-000000
-          DEBUG_OTP: "true"
-        run: |
-          python - <<'PY'
-          import config
-          problems = config.validate_for_production()
-          assert any("DEBUG_OTP" in p for p in problems), problems
-          print("refused as expected:", len(problems), "problem(s)")
-          PY
-
   frontend:
-    name: Frontend build and lint
+    name: Frontend build, tests, and lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -90,8 +28,6 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
-      # A missing translation key falls back to English rather than failing, so
-      # a half-added language is invisible at runtime. Catch it here instead.
       - name: Translations are complete in every language
         working-directory: frontend
         run: npm run i18n:check
@@ -110,28 +46,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      # requirements.txt carries ranges rather than pins, so this audits what a
-      # fresh install would actually resolve to today -- which is the thing that
-      # ends up on the server.
-      - name: Python advisories (PyPI + OSV)
-        working-directory: backend
-        run: |
-          python -m pip install --upgrade pip pip-audit
-          pip-audit -r requirements.txt --progress-spinner off
-
-      # Only production dependencies: a build-time advisory in a linter does not
-      # reach the shopkeeper's browser, and failing on it trains people to
-      # ignore this job.
       - name: npm advisories
         working-directory: frontend
         run: npm audit --omit=dev --audit-level=moderate

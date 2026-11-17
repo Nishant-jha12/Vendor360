@@ -172,7 +172,8 @@
     "confirm_password": "Confirm password",
     "already_registered": "Already registered?",
     "at_least_10_chars": "At least 10 characters",
-    "phone_too_short": "Please enter a valid phone number (at least 10 digits)"
+    "phone_too_short": "Please enter a valid phone number (at least 10 digits)",
+    "demo_fill": "Use Demo Store (testowner)"
   },
   "account": {
     "title": "My Account",
