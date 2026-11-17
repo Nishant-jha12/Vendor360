@@ -6,6 +6,7 @@ below, which are safe for local development only.
 """
 import os
 import secrets
+import tempfile
 from pathlib import Path
 
 ENV_PATH = Path(__file__).resolve().parent / ".env"
@@ -33,7 +34,8 @@ _load_env_file(ENV_PATH)
 # to writable /tmp/vendor360.db and preview demo mode when not in production.
 if os.environ.get("VERCEL"):
     if not os.environ.get("DATABASE_URL"):
-        os.environ["DATABASE_URL"] = "sqlite:////tmp/vendor360.db"
+        _tmp_db = Path(tempfile.gettempdir(), "vendor360.db").as_posix()
+        os.environ["DATABASE_URL"] = f"sqlite:///{_tmp_db}"
     if os.environ.get("APP_ENV", "development").strip().lower() != "production":
         os.environ.setdefault("DEBUG_OTP", "true")
         os.environ.setdefault("DEMO_MODE", "true")
