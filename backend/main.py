@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import logging
 import math
+import os
 import uuid
 
 from fastapi import FastAPI, Request, status
@@ -40,9 +41,16 @@ app = FastAPI(
 
 # Explicit origins only. "*" with allow_credentials=True is rejected by browsers,
 # so it can never be the default here.
+_allow_vercel_preview_regex = (
+    r"https://.*\.vercel\.app"
+    if (os.environ.get("VERCEL") and not settings.IS_PRODUCTION and not os.environ.get("CORS_ORIGINS"))
+    else None
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=_allow_vercel_preview_regex,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],

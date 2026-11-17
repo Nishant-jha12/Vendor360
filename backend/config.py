@@ -28,6 +28,16 @@ def _load_env_file(path: Path) -> None:
 
 _load_env_file(ENV_PATH)
 
+# Vercel serverless filesystem is read-only outside /tmp.
+# Ensure both unified (./) and standalone (backend/) Vercel deployments default
+# to writable /tmp/vendor360.db and preview demo mode when not in production.
+if os.environ.get("VERCEL"):
+    if not os.environ.get("DATABASE_URL"):
+        os.environ["DATABASE_URL"] = "sqlite:////tmp/vendor360.db"
+    if os.environ.get("APP_ENV", "development").strip().lower() != "production":
+        os.environ.setdefault("DEBUG_OTP", "true")
+        os.environ.setdefault("DEMO_MODE", "true")
+
 
 def _get_bool(name: str, default: bool) -> bool:
     return os.environ.get(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
